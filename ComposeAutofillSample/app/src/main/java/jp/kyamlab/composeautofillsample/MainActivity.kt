@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.AutofillNode
+import androidx.compose.ui.autofill.AutofillTree
 import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.boundsInWindow
@@ -31,6 +32,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MainScreen() {
     ComposeAutofillSampleTheme {
@@ -41,8 +43,10 @@ fun MainScreen() {
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                UserName()
-                Password()
+                val tree = AutofillTree()
+                User()
+                Spacer(modifier = Modifier.size(32.dp))
+                User(autofillTree = tree)
             }
         }
     }
@@ -50,14 +54,27 @@ fun MainScreen() {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun UserName() {
+fun User(
+    autofillTree: AutofillTree = LocalAutofillTree.current
+) {
+    Column {
+        UserName(autofillTree)
+        Password(autofillTree)
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun UserName(
+    autofillTree: AutofillTree = LocalAutofillTree.current
+) {
     var userName by remember { mutableStateOf("") }
     val autofillNode = AutofillNode(
         autofillTypes = listOf(AutofillType.Username),
         onFill = { userName = it }
     )
     val autofill = LocalAutofill.current
-    LocalAutofillTree.current += autofillNode
+    autofillTree += autofillNode
     OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
@@ -83,14 +100,16 @@ fun UserName() {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun Password() {
+fun Password(
+    autofillTree: AutofillTree = LocalAutofillTree.current
+) {
     var password by remember { mutableStateOf("") }
     val autofillNode = AutofillNode(
         autofillTypes = listOf(AutofillType.Password),
         onFill = { password = it }
     )
     val autofill = LocalAutofill.current
-    LocalAutofillTree.current += autofillNode
+    autofillTree += autofillNode
     OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
