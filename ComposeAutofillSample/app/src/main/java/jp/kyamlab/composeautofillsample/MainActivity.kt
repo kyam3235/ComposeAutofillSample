@@ -38,13 +38,47 @@ fun MainScreen() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colors.background
         ) {
-            Row(
+            Column(
                 modifier = Modifier.padding(16.dp)
             ) {
+                UserName()
                 Password()
             }
         }
     }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun UserName() {
+    var userName by remember { mutableStateOf("") }
+    val autofillNode = AutofillNode(
+        autofillTypes = listOf(AutofillType.Username),
+        onFill = { userName = it }
+    )
+    val autofill = LocalAutofill.current
+    LocalAutofillTree.current += autofillNode
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .onGloballyPositioned {
+                autofillNode.boundingBox = it.boundsInWindow()
+            }
+            .onFocusChanged { focusState ->
+                autofill?.run {
+                    if (focusState.isFocused) {
+                        requestAutofillForNode(autofillNode)
+                    } else {
+                        cancelAutofillForNode(autofillNode)
+                    }
+                }
+            },
+        value = userName,
+        onValueChange = { userName = it },
+        label = { Text(text = "UserName") },
+        maxLines = 1
+    )
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -83,13 +117,19 @@ fun Password() {
 @Preview
 @Composable
 fun MainScreenPreview() {
-    MainScreen()
+    ComposeAutofillSampleTheme {
+        MainScreen()
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun DefaultPreview() {
-    ComposeAutofillSampleTheme {
-        Password()
-    }
+fun PasswordPreview() {
+    Password()
+}
+
+@Preview(showBackground = true)
+@Composable
+fun UserNamePreview() {
+    UserName()
 }
